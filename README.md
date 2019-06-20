@@ -1,4 +1,4 @@
-# keras-yolo3
+# YoloV3 in Keras (Python)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 
