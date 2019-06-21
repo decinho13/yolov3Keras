@@ -22,7 +22,7 @@ class yolodeep:
         self.input_shape = (shape,shape) # multiple of 32, hw
         
         
-    def initialize():
+    def initialize(self):
         self.class_names = self.get_classes(self.classes_path)
         self.num_classes = len(self.class_names)
         self.anchors = self.get_anchors(self.anchors_path)
@@ -32,7 +32,7 @@ class yolodeep:
     
     def defineCallbacks(self):
         self.logging = TensorBoard(log_dir=self.log_dir)
-        self.checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
+        self.checkpoint = ModelCheckpoint(self.log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
             monitor='val_loss', save_weights_only=True, save_best_only=True, period=3)
         self.reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
         self.early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
@@ -45,9 +45,9 @@ class yolodeep:
         np.random.shuffle(self.lines)
         np.random.seed(None)
         self.num_val = int(len(self.lines)*val_split)
-        self.num_train = len(self.lines) - num_val
+        self.num_train = len(self.lines) - self.num_val
         
-    def learn(self,batchSize):
+    def learn(self,batchSize,epoch=5):
         # Train with frozen layers first, to get a stable loss.
         # Adjust num epochs to your dataset. This step is enough to obtain a not bad model.
         if True:
@@ -57,11 +57,11 @@ class yolodeep:
 
             self.batch_size = batchSize
             print('Train on {} samples, val on {} samples, with batch size {}.'.format(self.num_train, self.num_val, self.batch_size))
-            model.fit_generator(self.data_generator_wrapper(self.lines[:self.num_train], self.batch_size, self.input_shape, self.anchors, self.num_classes),
+            self.model.fit_generator(self.data_generator_wrapper(self.lines[:self.num_train], self.batch_size, self.input_shape, self.anchors, self.num_classes),
                     steps_per_epoch=max(1, self.num_train//self.batch_size),
                     validation_data=self.data_generator_wrapper(self.lines[self.num_train:], self.batch_size, self.input_shape, self.anchors, self.num_classes),
                     validation_steps=max(1, self.num_val//self.batch_size),
-                    epochs=50,
+                    epochs=epoch,
                     initial_epoch=0,
                     callbacks=[self.logging, self.checkpoint])
             self.model.save_weights(self.log_dir + 'trained_weights_stage_1.h5')
@@ -80,8 +80,8 @@ class yolodeep:
                 steps_per_epoch=max(1, self.num_train//self.batch_size),
                 validation_data=self.data_generator_wrapper(self.lines[self.num_train:], self.batch_size, self.input_shape, self.anchors, self.num_classes),
                 validation_steps=max(1, self.num_val//self.batch_size),
-                epochs=100,
-                initial_epoch=50,
+                epochs=epoch*2,
+                initial_epoch=epoch,
                 callbacks=[self.logging, self.checkpoint, self.reduce_lr, self.early_stopping])
             self.model.save_weights(self.log_dir + 'trained_weights_final.h5')
 
@@ -156,5 +156,5 @@ class yolodeep:
     def data_generator_wrapper(self,annotation_lines, batch_size, input_shape, anchors, num_classes):
         n = len(annotation_lines)
         if n==0 or batch_size<=0: return None
-        return data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)
+        return self.data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)
 
