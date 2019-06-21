@@ -11,8 +11,9 @@ An object-oriented Keras implementation of YOLOv3 (Tensorflow backend) inspired 
 
 ## Quick Start for Training with own Dataset
 
-1. Download YOLOv3 weights from [YOLO website](http://pjreddie.com/darknet/yolo/).
-2. Convert the Darknet YOLO model to a Keras model by running
+1. Download YOLOv3 weights from [YOLO website](http://pjreddie.com/darknet/yolo/) or typ in terminal:;
+    `wget https://pjreddie.com/media/files/yolov3.weights`
+2. Convert the Darknet YOLO model to a Keras model by running;
     `python convert.py -w yolov3.cfg yolov3.weights model_data/yolo_weights.h5`
 3. Prepare your dataset
     Generate your own annotation file and class names file.  
