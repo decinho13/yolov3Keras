@@ -14,13 +14,13 @@ from yolo3.utils import get_random_data
 
 class yolodeep:
     
-    def __init__(self,shape):
-        self.annotation_path = 'train.txt'
+    def __init__(self,shape,train_path,classes_path,anchors_path):
+        self.annotation_path =train_path 
         self.log_dir = 'logs/000/'
-        self.classes_path = 'model_data/voc_classes.txt'
-        self.anchors_path = 'model_data/yolo_anchors.txt'
+        self.classes_path = classes_path
+        self.anchors_path = anchors_path
         self.input_shape = (shape,shape) # multiple of 32, hw
-        self.logging = TensorBoard(log_dir=self.log_dir)
+        
         
     def initialize():
         self.class_names = self.get_classes(self.classes_path)
@@ -31,6 +31,7 @@ class yolodeep:
                 freeze_body=2, weights_path='model_data/yolo_weights.h5') # make sure you know what you freeze
     
     def defineCallbacks(self):
+        self.logging = TensorBoard(log_dir=self.log_dir)
         self.checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
             monitor='val_loss', save_weights_only=True, save_best_only=True, period=3)
         self.reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
@@ -45,6 +46,7 @@ class yolodeep:
         np.random.seed(None)
         self.num_val = int(len(self.lines)*val_split)
         self.num_train = len(self.lines) - num_val
+        
     def learn(self,batchSize):
         # Train with frozen layers first, to get a stable loss.
         # Adjust num epochs to your dataset. This step is enough to obtain a not bad model.
