@@ -20,9 +20,7 @@ class yolodeep:
         self.classes_path = classes_path
         self.anchors_path = anchors_path
         self.input_shape = (shape,shape) # multiple of 32, hw
-        
-        
-    def initialize(self):
+   
         self.class_names = self.get_classes(self.classes_path)
         self.num_classes = len(self.class_names)
         self.anchors = self.get_anchors(self.anchors_path)
